@@ -1,245 +1,244 @@
 <?php
 session_start();
 
-// amanin biar ga gampang di akses/celah XSS (kode skripting)
-function e($teks)
-{
-    return htmlspecialchars((string) $teks, ENT_QUOTES, 'UTF-8');
-}
+// Nama  : Nadrah Atha Fannani
+// NIM   : 102042500052
+// Kelas : 25-01
 
-// helper, nampilin pesan error (klo ada)
-function pesanError($errors, $kolom)
-{
-    if (isset($errors[$kolom])) 
-        {
-            echo '<p class="pesan-error" id="err-' . e($kolom) . '">* ' . e($errors[$kolom]) . '</p>';
-        }
-}
-
-//daftar matkul 
-$daftarMatkul = [
-    'Pengembangan Aplikasi Website',
-    'Pemrograman Berorientasi Objek',
-    'Basis Data',
-    'Pemrograman Mobile',
-    'Algoritma dan Pemrograman',
+$daftar_matkul = [
+    "Algoritma dan Pemrograman",
+    "Analisis dan Perancangan Sistem Informasi",
+    "Arsitektur Enterprise",
+    "Data Warehouse dan Business Intelligence",
+    "Komputasi Awan",
+    "Pemodelan Proses Bisnis",
+    "Pengantar Sistem Informasi",
+    "Pengembangan Aplikasi Bergerak",
+    "Pengembangan Aplikasi Website",
+    "Pengembangan UI Lanjut",
+    "Proyek Perangkat Lunak",
+    "Sistem Enterprise",
+    "Sistem Informasi Akuntansi",
+    "Sistem Operasi"
 ];
 
-$data = ['nama' => '', 'whatsapp' => '', 'email' => '', 'matkul' => '', 'motivasi' => '', ];
-$errors = [];
-$info = '';
-$halaman = 'form';
-$baruMendaftar = false;
+$nama = "";
+$whatsapp = "";
+$email = "";
+$matkul = "";
+$motivasi = "";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') 
-    {
-        //ambil smua input, buang spasi dan pastiin string bentuknya
-        foreach ($data as $kolom => $nilai)
-            {
-                $mentah = $_POST[$kolom] ?? '';
-                $data[$kolom] = is_string($mentah) ? trim($mentah) : '';
-            }
-        
-            $aksi = $_POST['aksi'] ?? 'daftar';
+$namaErr = "";
+$waErr = "";
+$emailErr = "";
+$matkulErr = "";
+$motivasiErr = "";
 
-            if ($aksi === 'lihat')
-                {
-                    // bagian tombol lihat data yg daftar
-                    if (isset($_SESSION['pendaftar']))
-                        {
-                            $halaman = 'kartu';
-                        }
-                        else
-                            {
-                              $info = 'Belum ada data pendaftar.';  
-                            }
-                }
-                elseif ($aksi === 'kembali')
-                    {
-                        //bagian tombol balik ke form
-                         $halaman = 'form';
-                    }
-                    else 
-                        {
-                            // bagian tombol "daftar sekarang", validasi sisi servernya
+$mode = "form";
 
-                            // bagian nama, gabisa kosong (huruf & spasi only)
-                            if ($data['nama'] === '')
-                                {
-                                    $errors['nama'] = 'Nama lengkap tidak boleh kosong';
-                                }
-                                elseif (!preg_match('/^[\p{L}\s]+$/u', $data['nama']))
-                                    {
-                                        $errors['nama'] = 'Nama hanya boleh berupa huruf';
-                                    }
-                            
-                            // bagian whatsapp, awalin 0 atau 62
-                            if ($data['whatsapp'] === '')
-                                {
-                                    $errors['whatsapp'] = 'Nomor WhatsApp tidak boleh kosong';
-                                }   
-                                elseif (!preg_match('/^(0|62)/', $data['whatsapp']))
-                                    {
-                                        $errors['whatsapp'] = 'Nomor WhatsApp harus diawali 0 atau 62';
-                                    }
-                
-                            //bagian email, formatnya hrs kayak email pada umumnya
-                            if ($data['email'] === '')
-                                {
-                                   $errors['email'] = 'Email institusi tidak boleh kosong'; 
-                                }
-                                elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
-                                    {
-                                        $errors['email'] = 'Format email institusi tidak valid';
-                                    }
-                            
-                            //bagian matkul, wajib pilih yg ada d daftar
-                            if (!in_array($data['matkul'], $daftarMatkul, true))
-                                {
-                                    $errors['matkul'] = 'Pilihan mata kuliah praktikum wajib dipilih';
-                                }
-
-                            //bagian motivasi, harus diisi
-                            if ($data['motivasi'] === '')
-                                {
-                                    $errors['motivasi'] = 'Motivasi mendaftar tidak boleh kosong';
-                                }
-
-                            //klo smua lolos, simpen ke session trs tampilin card regist
-                            if (empty($errors))
-                                {
-                                    $_SESSION['pendaftar'] = $data + [
-                                        'no_registrasi' => date('md') . '-' . random_int(1000000, 9999999),
-                                    ];
-                                    $halaman = 'kartu';
-                                    $baruMendaftar = true;
-                                }
-                        }
-
-                
+if (isset($_GET['page']) && $_GET['page'] === 'id_card') {
+    if (!empty($_SESSION['data_pendaftar'])) {
+        $nama = $_SESSION['data_pendaftar']['nama'];
+        $whatsapp = $_SESSION['data_pendaftar']['whatsapp'];
+        $email = $_SESSION['data_pendaftar']['email'];
+        $matkul = $_SESSION['data_pendaftar']['matkul'];
+        $motivasi = $_SESSION['data_pendaftar']['motivasi'];
+        $mode = "id_card";
     }
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Nama lengkap
+    $nama = trim($_POST["nama_lengkap"] ?? "");
+    if ($nama === "") {
+        $namaErr = "Nama lengkap tidak boleh kosong";
+    } elseif (!preg_match("/^[a-zA-Z ]+$/", $nama)) {
+        $namaErr = "Nama hanya boleh berupa huruf";
+    }
+
+    // Nomor WhatsApp
+    $whatsapp = trim($_POST["no_whatsapp"] ?? "");
+    if ($whatsapp === "") {
+        $waErr = "Nomor WhatsApp tidak boleh kosong";
+    } elseif (substr($whatsapp, 0, 1) !== "0" && substr($whatsapp, 0, 2) !== "62") {
+        $waErr = "Nomor WhatsApp harus diawali 0 atau 62";
+    }
+
+    // Email institusi
+    $email = trim($_POST["email_institusi"] ?? "");
+    if ($email === "") {
+        $emailErr = "Email institusi tidak boleh kosong";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $emailErr = "Format email tidak valid";
+    }
+
+    // Mata kuliah
+    $matkul = $_POST["pilihan_matkul"] ?? "";
+    if ($matkul === "") {
+        $matkulErr = "Pilihan mata kuliah praktikum wajib dipilih";
+    }
+
+    // Motivasi
+    $motivasi = trim($_POST["motivasi"] ?? "");
+    if ($motivasi === "") {
+        $motivasiErr = "Motivasi mendaftar tidak boleh kosong";
+    }
+
+    // Simpan data jika semua valid
+    if (empty($namaErr) && empty($waErr) && empty($emailErr) && empty($matkulErr) && empty($motivasiErr)) {
+        $_SESSION['data_pendaftar'] = [
+            'nama' => $nama,
+            'whatsapp' => $whatsapp,
+            'email' => $email,
+            'matkul' => $matkul,
+            'motivasi' => $motivasi
+        ];
+        $mode = "id_card";
+    }
+}
 ?>
 
-<!-- BAGIAN HTML NYA -->
 <!DOCTYPE html>
 <html lang="id">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title><?= $halaman === 'kartu' ? 'Kartu Registrasi' : 'Pendaftaran Asisten Praktikum' ?></title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="hiasanhalamanasprak1.css">
-    </head>
 
-    <body>
-        <main class="card">
-            <svg class="logo" width="44" height="32" viewBox="0 0 44 32" aria-hidden="true">
-                <path d="M14 2 L2 16 L14 30 L20 24 L12 16 L20 8 Z" fill="#2563eb"/>
-                <path d="M30 2 L42 16 L30 30 L24 24 L32 16 L24 8 Z" fill="#dc2626"/>
-            </svg>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Calon Asisten Praktikum</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="hiasanhalamanasprak1.css">
+</head>
 
-<?php if ($halaman === 'form'): ?>
-    <h1>Pendaftaran Asisten Praktikum</h1>
-    <p class="subjudul">Laboratorium Enterprise Application Development</p>
+<body>
 
-    <?php if (!empty($errors)): ?>
-        <div class="alert alert-gagal" role="alert">
-            <strong>Pendaftaran gagal!</strong> Harap perbaiki data yang salah
-        </div>
-    <?php endif; ?>
+    <?php if ($mode === "id_card") { ?>
 
-    <?php if ($info !== ''): ?>
-        <div class="alert alert-info" role="status"><?= e($info) ?></div>
-    <?php endif; ?>
+        <!-- ==================== MODE ID CARD ==================== -->
+        <div class="id-card">
+            <img src="logo.png" alt="Logo" class="logo">
+            <div class="id-card-header">
+                <h2>Kartu Registrasi</h2>
+                <p>Calon Asisten Praktikum Laboratorium</p>
+            </div>
 
-    <form method="post">
-       <div class="field">
-            <label for="nama">Nama Lengkap <span class="wajib">*</span></label>
-            <input type="text" id="nama" name="nama" placeholder="Contoh: Budi Santoso"
-                value="<?= e($data['nama']) ?>"
-                class="<?= isset($errors['nama']) ? 'invalid' : '' ?>"
-                <?= isset($errors['nama']) ? 'aria-invalid="true" aria-describedby="err-nama"' : '' ?>>
+            <div class="alert alert-success">
+                <strong>Berhasil!</strong> Data pendaftaran telah diterima.
+            </div>
 
-            <?php pesanError($errors, 'nama'); ?>
-        </div>
+            <div class="id-card-body">
+                <div class="id-card-row">
+                    <span class="id-card-label">Nama Lengkap</span>
+                    <span class="id-card-value"><?php echo htmlspecialchars($nama); ?></span>
+                </div>
 
-        <div class="field">
-            <label for="whatsapp">Nomor WhatsApp <span class="wajib">*</span></label>
-            <input type="text" id="whatsapp" name="whatsapp" placeholder="Contoh: 081234567890"
-                value="<?= e($data['whatsapp']) ?>"
-                class="<?= isset($errors['whatsapp']) ? 'invalid' : '' ?>"
-                <?= isset($errors['whatsapp']) ? 'aria-invalid="true" aria-describedby="err-whatsapp"' : '' ?>>
-            
-             <?php pesanError($errors, 'whatsapp'); ?>
-        </div>
-        
-        <div class="field">
-            <label for="email">Email Institusi <span class="wajib">*</span></label>
-            <input type="email" id="email" name="email" placeholder="Contoh: budi@university.ac.id"
+                <div class="id-card-row">
+                    <span class="id-card-label">No. WhatsApp</span>
+                    <span class="id-card-value"><?php echo htmlspecialchars($whatsapp); ?></span>
+                </div>
 
-                value="<?= e($data['email']) ?>"
-                class="<?= isset($errors['email']) ? 'invalid' : '' ?>"
-                <?= isset($errors['email']) ? 'aria-invalid="true" aria-describedby="err-email"' : '' ?>>
-             <?php pesanError($errors, 'email'); ?>
-        </div>
+                <hr class="id-card-divider">
 
-        <div class="field">
-            <label for="matkul">Pilihan Mata Kuliah Praktikum <span class="wajib">*</span></label>
-            <select id="matkul" name="matkul"
-                class="<?= isset($errors['matkul']) ? 'invalid' : '' ?>"
-                <?= isset($errors['matkul']) ? 'aria-invalid="true" aria-describedby="err-matkul"' : '' ?>>
+                <div class="id-card-row">
+                    <span class="id-card-label">Email Institusi</span>
+                    <span class="id-card-value"><?php echo htmlspecialchars($email); ?></span>
+                </div>
 
-                <option value="">--- Pilih Mata Kuliah ---</option>
-                <?php foreach ($daftarMatkul as $matkul): ?>
-                    <option value="<?= e($matkul) ?>" <?= $data['matkul'] === $matkul ? 'selected' : '' ?>>
-                        <?= e($matkul) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <?php pesanError($errors, 'matkul'); ?>
+                <div class="id-card-row">
+                    <span class="id-card-label">Mata Kuliah</span>
+                    <span class="id-card-value"><?php echo htmlspecialchars($matkul); ?></span>
+                </div>
+
+                <hr class="id-card-divider">
+
+                <div class="id-card-row">
+                    <span class="id-card-label">Motivasi</span>
+                    <span class="id-card-value"><?php echo nl2br(htmlspecialchars($motivasi)); ?></span>
+                </div>
+
+                <div style="text-align: center; margin-top: 18px;">
+                    <span class="id-card-badge">Pendaftaran Berhasil</span>
+                </div>
+            </div>
+
+            <a href="?page=form" class="btn-kembali">Kembali ke Form</a>
+
+            <div class="id-card-footer">
+                Nomor Registrasi: REG-<?php echo strtoupper(substr(md5(time()), 0, 8)); ?> &bull; Dicetak otomatis oleh
+                sistem
+            </div>
         </div>
 
-        <div class="field">
-            <label for="motivasi">Motivasi Mendaftar <span class="wajib">*</span></label>
-            <textarea id="motivasi" name="motivasi" placeholder="Tuliskan alasan kamu ingin menjadi asisten praktikum..."
-                    class="<?= isset($errors['motivasi']) ? 'invalid' : '' ?>"
-                    <?= isset($errors['motivasi']) ? 'aria-invalid="true" aria-describedby="err-motivasi"' : '' ?>><?= e($data['motivasi']) ?></textarea>
-            <?php pesanError($errors, 'motivasi'); ?>
+    <?php } else { ?>
+
+        <!-- ==================== MODE FORM ==================== -->
+        <div class="container">
+            <img src="logo.png" alt="Logo" class="logo">
+            <h2>Pendaftaran Asisten Praktikum</h2>
+            <p class="subtitle">Laboratorium Enterprise Application Development</p>
+
+            <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && (!empty($namaErr) || !empty($waErr) || !empty($emailErr) || !empty($matkulErr) || !empty($motivasiErr))) { ?>
+                <div class="alert alert-danger">
+                    <strong>Pendaftaran gagal!</strong> Harap perbaiki data yang salah.
+                </div>
+            <?php } ?>
+
+            <form method="POST" action="<?php echo $_SERVER["PHP_SELF"]; ?>">
+                <div class="form-group">
+                    <label>Nama Lengkap <span class="required">*</span></label>
+                    <input type="text" name="nama_lengkap" placeholder="Contoh: Budi Santoso"
+                        value="<?php echo htmlspecialchars($nama); ?>">
+                    <span class="error"><?php echo $namaErr ? "* $namaErr" : ""; ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Nomor WhatsApp <span class="required">*</span></label>
+                    <input type="number" name="no_whatsapp" placeholder="Contoh: 081234567890"
+                        value="<?php echo htmlspecialchars($whatsapp); ?>">
+                    <span class="error"><?php echo $waErr ? "* $waErr" : ""; ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Institusi <span class="required">*</span></label>
+                    <input type="email" name="email_institusi" placeholder="Contoh: budi@university.ac.id"
+                        value="<?php echo htmlspecialchars($email); ?>">
+                    <span class="error"><?php echo $emailErr ? "* $emailErr" : ""; ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Pilihan Mata Kuliah Praktikum <span class="required">*</span></label>
+                    <select name="pilihan_matkul">
+                        <option value="">-- Pilih Mata Kuliah --</option>
+                        <?php foreach ($daftar_matkul as $mk) { ?>
+                            <option value="<?php echo $mk; ?>" <?php echo ($matkul == $mk) ? 'selected' : ''; ?>>
+                                <?php echo $mk; ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <span class="error"><?php echo $matkulErr ? "* $matkulErr" : ""; ?></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Motivasi Mendaftar <span class="required">*</span></label>
+                    <textarea name="motivasi"
+                        placeholder="Tuliskan alasan kamu ingin menjadi asisten praktikum..."><?php echo htmlspecialchars($motivasi); ?></textarea>
+                    <span class="error"><?php echo $motivasiErr ? "* $motivasiErr" : ""; ?></span>
+                </div>
+
+                <div class="button-container">
+                    <button type="submit">Daftar Sekarang</button>
+                    <?php if (!empty($_SESSION['data_pendaftar'])) { ?>
+                        <a href="?page=id_card" class="btn-lihat-data">Lihat Data Pendaftar</a>
+                    <?php } ?>
+                </div>
+            </form>
         </div>
 
-        <button type="submit" name="aksi" value="daftar" class="btn btn-utama">Daftar Sekarang</button>
-        <button type="submit" name="aksi" value="lihat" class="btn btn-garis" formnovalidate>Lihat Data Pendaftar</button>
-    </form>
+    <?php } ?>
 
-<?php else: ?>
-    <?php $p = $_SESSION['pendaftar']; ?>
-    <h1>Kartu Registrasi</h1>
-    <p class="subjudul">Calon Asisten Praktikum Laboratorium</p>
+</body>
 
-    <?php if ($baruMendaftar): ?>
-        <div class="alert alert-sukses" role="status">
-            <strong>Berhasil!</strong> Data pendaftaran telah diterima.
-        </div>
-    <?php endif; ?>
-
-    <dl class="kartu-data">
-        <div class="baris"><dt>Nama Lengkap</dt><dd><?= e($p['nama']) ?></dd></div>
-        <div class="baris"><dt>No. WhatsApp</dt><dd><?= e($p['whatsapp']) ?></dd></div>
-        <div class="baris"><dt>Email Institusi</dt><dd><?= e($p['email']) ?></dd></div>
-        <div class="baris"><dt>Mata Kuliah</dt><dd><?= e($p['matkul']) ?></dd></div>
-        <div class="baris"><dt>Motivasi</dt><dd><?= nl2br(e($p['motivasi'])) ?></dd></div>
-    </dl>
-
-    <div class="badge-wrap"><span class="badge">Pendaftaran Berhasil</span></div>
-
-    <form method="post">
-        <button type="submit" name="aksi" value="kembali" class="btn btn-utama">Kembali ke Form</button>
-    </form>
-
-    <p class="catatan">Nomor Registrasi: <?= e($p['no_registrasi']) ?> &bull; Dicetak otomatis oleh sistem</p>
-<?php endif; ?>
-    </main>
-    </body>
 </html>
